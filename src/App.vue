@@ -1,7 +1,11 @@
 <script>
 import { reactive, ref, onMounted, getCurrentInstance } from "vue";
 import { v4 as uuid } from "uuid";
+import CarBlock from "./components/CarBlock.vue";
 export default {
+  components: {
+    CarBlock,
+  },
   setup() {
     const cars = reactive([]);
     const roadRef = ref(null);
@@ -10,6 +14,7 @@ export default {
     const stopPosition = ref({});
     let carCounter = 0;
     const createCar = () => {
+      carCounter++;
       const car = {
         id: uuid(),
         carCounter,
@@ -44,12 +49,12 @@ export default {
       };
 
       const stopStationDOM = getCurrentInstance().ctx.$refs["stopStationRef"];
-      console.log(
-        "roadRect",
-        roadRect,
-        "stopStationDOM :>> ",
-        stopStationDOM[0].getBoundingClientRect()
-      );
+      // console.log(
+      //   "roadRect",
+      //   roadRect,
+      //   "stopStationDOM :>> ",
+      //   stopStationDOM[0].getBoundingClientRect()
+      // );
 
       const stopPositionRect = stopStationDOM[0].getBoundingClientRect();
       // 计算需要移动到的位置, stopTop - roadTop
@@ -85,17 +90,23 @@ export default {
       </button>
     </div>
     <!-- container road -->
-    <div id="road" ref="roadRef" class="w-40 h-auto bg-sky-800 mt-10 relative">
+    <div
+      id="road"
+      ref="roadRef"
+      class="w-40 h-auto bg-sky-800 mt-10 relative overflow-hidden"
+    >
       <!-- the start block -->
       <div class="w-full h-20 border-red-500 grid place-items-center">
         start block
       </div>
 
-      <div
-        class="car test-text absolute top-0 right-8 opacity-90 rounded w-10 h-16 border border-yellow-400 bg-yellow-500 grid place-items-center"
-      >
-        car
-      </div>
+      <CarBlock
+        v-for="car in cars"
+        :key="car.id"
+        :carInfo="car"
+        :roadInfo="roadInfo"
+        :stopPosition="stopPosition"
+      />
       <!-- stations  -->
       <div
         v-for="station in stations"
@@ -127,6 +138,12 @@ export default {
   animation-fill-mode: forwards;
 }
 
+.car-move-end {
+  animation-name: move-to-end;
+  animation-duration: 10s;
+  animation-fill-mode: forwards;
+}
+
 @keyframes move-to-stop-station {
   from {
     transform: translateY(0);
@@ -145,6 +162,7 @@ export default {
   }
   to {
     transform: translateY(v-bind(roadInfo.height));
+    transition-timing-function: linear;
   }
 }
 </style>
