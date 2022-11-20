@@ -1,17 +1,15 @@
 <script>
-import { reactive, ref, onMounted, getCurrentInstance } from "vue";
+import { reactive, onMounted, ref } from "vue";
 import { v4 as uuid } from "uuid";
-import CarBlock from "./components/CarBlock.vue";
+import CarRoad from "./components/CarRoad.vue";
 export default {
   components: {
-    CarBlock,
+    CarRoad,
   },
   setup() {
     const cars = reactive([]);
-    const roadRef = ref(null);
-    const stopStationRef = ref(null);
-    const roadInfo = ref({});
-    const stopPosition = ref({});
+    const direction = ref("vertical");
+    const stopStationIndex = ref(3);
     let carCounter = 0;
     const createCar = () => {
       carCounter++;
@@ -23,54 +21,15 @@ export default {
       cars.push(car);
     };
 
-    const padString = (str, len = 3) => {
-      if (str.toString().length >= len) return str.toString();
-      const _length = len - str.toString().length;
-      return Array(_length).fill(0).join("") + str.toString();
-    };
+    // createCar();
 
-    const stopStationIndex = 0;
-    // 创建 stations
-    const stations = new Array(11).fill(0).map((_, index) => {
-      return {
-        stationIndex: index,
-        stationName: padString(index),
-        stop: index === stopStationIndex,
-      };
-    });
-
-    onMounted(() => {
-      const roadDOM = roadRef.value;
-      // rect
-      const roadRect = roadDOM.getBoundingClientRect();
-      roadInfo.value = {
-        height: roadRect.height + "px",
-        width: roadRect.width + "px",
-      };
-
-      const stopStationDOM = getCurrentInstance().ctx.$refs["stopStationRef"];
-      // console.log(
-      //   "roadRect",
-      //   roadRect,
-      //   "stopStationDOM :>> ",
-      //   stopStationDOM[0].getBoundingClientRect()
-      // );
-
-      const stopPositionRect = stopStationDOM[0].getBoundingClientRect();
-      // 计算需要移动到的位置, stopTop - roadTop
-      stopPosition.value = {
-        moveY: parseInt(stopPositionRect.top - roadRect.top) + "px",
-      };
-    });
+    onMounted(() => {});
 
     return {
       cars,
-      stations,
       createCar,
-      roadRef,
-      roadInfo,
-      stopStationRef,
-      stopPosition,
+      direction,
+      stopStationIndex,
       color: "red",
     };
   },
@@ -89,80 +48,19 @@ export default {
         发车
       </button>
     </div>
-    <!-- container road -->
-    <div
-      id="road"
-      ref="roadRef"
-      class="w-40 h-auto bg-sky-800 mt-10 relative overflow-hidden"
-    >
-      <!-- the start block -->
-      <div class="w-full h-20 border-red-500 grid place-items-center">
-        start block
-      </div>
-
-      <CarBlock
-        v-for="car in cars"
-        :key="car.id"
-        :carInfo="car"
-        :roadInfo="roadInfo"
-        :stopPosition="stopPosition"
-      />
-      <!-- stations  -->
-      <div
-        v-for="station in stations"
-        :key="station.stationIndex"
-        :class="[
-          `${station.stop ? 'bg-orange-600' : ' '}`,
-          'w-full h-14 border-yellow-300 flex justify-start items-center pl-5',
-        ]"
-      >
-        <div
-          v-if="station.stop"
-          ref="stopStationRef"
-          class="w-0 h-0 -mt-14"
-        ></div>
-        {{ station.stationName }}
-      </div>
+    <div class="w-full flex justify-center gap-3">
+      <CarRoad
+        :cars="cars"
+        direction="row"
+        :stopStationIndex="stopStationIndex"
+      ></CarRoad>
+      <CarRoad
+        :cars="cars"
+        :direction="direction"
+        :stopStationIndex="0"
+      ></CarRoad>
     </div>
   </div>
 </template>
 
-<style scoped>
-.test-text {
-  color: v-bind(color);
-}
-
-.car {
-  animation-name: move-to-stop-station;
-  animation-duration: 10s;
-  animation-fill-mode: forwards;
-}
-
-.car-move-end {
-  animation-name: move-to-end;
-  animation-duration: 10s;
-  animation-fill-mode: forwards;
-}
-
-@keyframes move-to-stop-station {
-  from {
-    transform: translateY(0);
-    transition-timing-function: linear;
-  }
-
-  to {
-    transform: translateY(v-bind(stopPosition.moveY));
-  }
-}
-
-@keyframes move-to-end {
-  from {
-    /* transform: translateY(0); */
-    /* transform-origin: center; */
-  }
-  to {
-    transform: translateY(v-bind(roadInfo.height));
-    transition-timing-function: linear;
-  }
-}
-</style>
+<style scoped></style>
